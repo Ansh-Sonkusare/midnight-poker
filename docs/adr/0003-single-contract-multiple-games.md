@@ -1,0 +1,3 @@
+# Single contract manages all poker games instead of one contract per table
+
+Per-game contracts would require separate deployments per table, each with its own proving key generation. Players would need to track multiple contract addresses, and the platform would pay deployment fees per game. A single contract keyed by `game_id` centralizes state management for the platform while keeping player interaction simple (one address, one set of proving keys). The trade-off is a larger contract circuit (6-max seats baked in), a more complex state machine, and gas costs that don't scale with number of active games. Acceptable because at most a few dozen tables will run simultaneously.
