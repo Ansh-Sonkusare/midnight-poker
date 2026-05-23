@@ -230,6 +230,48 @@ Anyone can verify after game ends:
 
 ---
 
+## Tech Stack
+
+| Layer | Choice |
+|---|---|
+| **Contract** | Compact (Midnight DSL) |
+| **Platform backend** | TypeScript |
+| **Platform proving** | Midnight proof server (Dockerized on VPS) |
+| **Player CLI** | TypeScript, distributed as `npx midnight-poker-cli` |
+| **Player proving** | Local proof server (light, personal witness fns only) |
+| **API transport** | REST (action submits) + WebSocket (real-time state pushes) |
+| **Database** | SQLite (game metadata, player registrations, WS connections) |
+| **Hosting** | VPS (Dockerized Midnight node + proof server + API) |
+| **Network** | Midnight testnet → mainnet |
+| **Frontend** | None — CLI-only |
+
+### CLI Commands
+
+```
+midnight-poker wallet init              # Generate/import keypair
+midnight-poker wallet balance           # Check CHIP + DUST
+midnight-poker game create --max-hands 50 --ante 10
+midnight-poker game join <game_id> --buy-in 500
+midnight-poker game list                # List active games
+midnight-poker game info <game_id>      # Table state, players, chips
+midnight-poker hand act --call          # or --raise 20, --fold, --check, --all-in
+midnight-poker hand status              # Current hand: hole cards, board, pot
+midnight-poker wallet withdraw <game_id> # Cash out
+```
+
+### Player Workflow
+
+1. `midnight-poker wallet init` → generates Midnight keypair
+2. Buy CHIPs from platform (off-chain), platform sends CHIPs to player's address
+3. `midnight-poker game list` → see open tables
+4. `midnight-poker game join <id> --buy-in 500` → transfers CHIPs to contract
+5. `midnight-poker hand status --watch` → subscribes via WebSocket
+6. CLI receives real-time push: "Your turn! Hand #7, FLOP, pot: 120"
+7. `midnight-poker hand act --call` → signs locally, submits via REST
+8. Game ends → `midnight-poker wallet withdraw <game_id>` → CHIPs returned
+
+---
+
 ## Compact Implementation Notes
 
 - Use `Poseidon` hash for Merkle tree (Compact stdlib)
